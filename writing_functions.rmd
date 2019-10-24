@@ -1,0 +1,15 @@
+---
+title: "writing_functions"
+author: "Kylie Wheelock Riley"
+date: "10/24/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rvest)
+
+set.seed(1)
+```
