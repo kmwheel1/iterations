@@ -121,3 +121,103 @@ mean_and_sd = function(input_x) {
 ```
 
 test the function above
+
+## Multiple Inputs
+
+``` r
+sim_data = tibble(
+  x = rnorm(30, mean = 1, sd = 1),
+  y = 2 + 3 * x + rnorm(30, 0, 1)
+)
+
+##sim_data %>% 
+ ## ggplot(aes(x = x, y = y)) +
+ ## geop_point()
+
+ls_fit = lm(y ~ x, data = sim_data)
+  
+beta0_hat = coef(ls_fit)[1]
+##square bracket says give me the first coefficient (not a tidy way to do it)
+beta1_hat = coef(ls_fit)[2]
+##square bracket says give me the second coefficient
+```
+
+``` r
+sim_regression = function(n) {
+  
+sim_data = tibble(
+  x = rnorm(30, mean = 1, sd = 1),
+  y = 2 + 3 * x + rnorm(30, 0, 1)
+)
+
+
+ls_fit = lm(y ~ x, data = sim_data)
+  
+beta0_hat = coef(ls_fit)[1]
+##square bracket says give me the first coefficient (not a tidy way to do it)
+beta1_hat = coef(ls_fit)[2]
+##square bracket says give me the second coefficient
+}
+
+sim_regression( n = )
+```
+
+\#\#Revisiting past examples
+
+``` r
+url = "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber=1"
+
+dynamite_html = 
+  read_html(url)
+
+review_titles = 
+  dynamite_html %>%
+  html_nodes("#cm_cr-review_list .review-title") %>%
+  html_text()
+
+review_stars = 
+  dynamite_html %>%
+  html_nodes("#cm_cr-review_list .review-rating") %>%
+  html_text()
+
+review_text = 
+  dynamite_html %>%
+    html_nodes(".review-data:nth-child(4)") %>%
+    html_text()
+
+reviews = 
+  tibble(
+  title = review_titles,
+  stars = review_stars,
+  text = review_text
+)
+```
+
+Now create a function
+
+``` r
+read_page_reviews <- function(url) {
+  
+  h = read_html(url)
+  
+  review_titles = h %>%
+    html_nodes("#cm_cr-review_list .review-title") %>%
+    html_text()
+  
+  review_stars = h %>%
+    html_nodes("#cm_cr-review_list .review-rating") %>%
+    html_text() %>%
+    str_extract("\\d") %>%
+    as.numeric()
+  
+  review_text = h %>%
+    html_nodes(".review-data:nth-child(4)") %>%
+    html_text()
+  
+  tibble(
+    title = review_titles,
+    stars = review_stars,
+    text = review_text
+  )
+}
+```
