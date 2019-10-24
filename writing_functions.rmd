@@ -1,5 +1,5 @@
 ---
-title: "writing_functions"
+title: "Writing Functions"
 author: "Kylie Wheelock Riley"
 date: "10/24/2019"
 output: github_document
@@ -13,3 +13,75 @@ library(rvest)
 
 set.seed(1)
 ```
+
+We're going to write some functions. 
+
+```{r}
+x = rnorm(n = 30, mean = 4, sd = 2.3)
+x_again = rnorm(n = 30, mean = 6, sd = .3)
+
+(x - mean(x)) / sd(x)
+(x_again - mean(x_again)) / sd(x_again)
+```
+
+Already getting complicated and getting a z score is one of the easiest things you can do.  Can write a function to simplify. 
+
+```{r}
+z_scores = function(x_arg) {
+  ##adding conditional formatting so the function only works on the type of data you want
+    if (!is.numeric(x_arg)) {
+    stop("Argument x should be numeric")
+  } else if (length(x_arg) == 1) {
+    stop("Z scores cannot be computed for length 1 vectors")
+  }
+  z = (x_arg - mean(x_arg)) / sd(x_arg)
+  z
+  
+}
+
+z_scores(x)
+```
+
+try out the function
+```{r, error = TRUE}
+z_scores(x_arg = y)
+##figure out what y is after class
+
+z_scores(x = 3)
+#does not work
+z_scores("my name is jeff")
+#does not work
+z_scores(x = c(TRUE, TRUE, FALSE, TRUE))
+#does work
+z_scores(x = iris)
+#does not work
+```
+
+## Multiple Outputs
+```{r}
+mean_and_sd = function(input_x) {
+  
+  if (!is.numeric(x_arg)) {
+    stop("Argument x should be numeric")
+  } else if (length(x_arg) == 1) {
+    stop("Cannot be computed for length 1 vectors")
+  }
+  
+  tibble(
+  mean_input = mean(input_x),
+  sd_x = sd(input_x)
+  )
+
+  list(
+    mean_input = mean(input_x), 
+       sd_input = sd(input_x),
+       z_score = (input_x - mean(input_x))/(sd(input_x))
+  )
+}
+```
+
+test the function above
+```{r}
+
+```
+
