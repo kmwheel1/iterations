@@ -1,0 +1,21 @@
+---
+title: "iteration_and_listcols"
+author: "Kylie Wheelock Riley"
+date: "10/29/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set
+library(tidyverse)
+
+set.seed(1)
+```
+
+## Lists
+```{r}
+vec_numeric = 5:8
+vec_char = c("My", "name", "is", "Jeff")
+vec_logical = c(TRUE, TRUE, TRUE, FALSE)
+```
+
