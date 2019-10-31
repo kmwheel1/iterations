@@ -19,3 +19,218 @@ vec_char = c("My", "name", "is", "Jeff")
 vec_logical = c(TRUE, TRUE, TRUE, FALSE)
 ```
 
+```{r}
+#List is letting us storewhatever we want
+#Several ways to access things in list (name $, index[[2]], mean(l, vec_numeric))
+l = list(vec_numeric = 5:8,
+         mat         = matrix(1:8, 2, 4),
+         vec_logical = c(TRUE, FALSE),
+         summary     = summary(rnorm(1000)))
+l
+
+l$vec_numeric
+## [1] 5 6 7 8
+l[[1]]
+## [1] 5 6 7 8
+l[[1]][1:3]
+```
+
+##For Loops
+```{r}
+df = list(
+  a = rnorm(20, 3, 1),
+  b = rnorm(20, 0, 5),
+  c = rnorm(20, 10, .2),
+  d = rnorm(20, -3, 1)
+)
+
+is.list(df)
+```
+
+```{r}
+mean_and_sd = function(x) {
+  
+  if (!is.numeric(x)) {
+    stop("Argument x should be numeric")
+  } else if (length(x) == 1) {
+    stop("Cannot be computed for length 1 vectors")
+  }
+  
+  mean_x = mean(x)
+  sd_x = sd(x)
+
+  tibble(
+    mean = mean_x, 
+    sd = sd_x
+  )
+}
+```
+
+Using function on list
+```{r}
+mean_and_sd(df[[1]])
+mean_and_sd(df[[2]])
+mean_and_sd(df[[3]])
+mean_and_sd(df[[4]])
+```
+But now there are a bunch of outputs from the function. Want to store them. Can use for loop. 
+
+Writing our first for loop. 
+
+```{r}
+output = vector("list", length = 4)
+
+for (i in 1:4) {
+  output[[i]] = mean_and_sd(df[[i]])
+}
+
+output
+```
+
+## Map
+Want to change the for loop to a map statement
+```{r}
+output = map(df, mean_and_sd)
+
+output_median = map(df, median)
+##Just mapping median
+
+output_summary = map(df, summary)
+##Mapping summary
+ 
+##AFTER CLASS LOOK UP HOW TO GET AN OUTPUT OF A DF< OR A JOINED DF
+output_median = map_dbl(df, median)
+##putput = map_df(df, ??)
+```
+
+More specific arguments
+```{r}
+output = map_df(.x = df, ~ mean_and_sd(.x))
+```
+
+### Map Variants
+```{r}
+output = map_dbl(df, median, .id = "input")
+output = map_dfr(df, mean_and_sd, .id = "input")
+
+```
+
+
+##Napolean Dynamite Example
+```{r}
+library(rvest)
+
+read_page_reviews = function(url) {
+  
+  h = read_html(url)
+  
+  title = h %>%
+    html_nodes("#cm_cr-review_list .review-title") %>%
+    html_text()
+  
+  stars = h %>%
+    html_nodes("#cm_cr-review_list .review-rating") %>%
+    html_text() %>%
+    str_extract("\\d") %>%
+    as.numeric()
+  
+  text = h %>%
+    html_nodes(".review-data:nth-child(5)") %>%
+    html_text()
+  
+  data_frame(title, stars, text)
+}
+```
+
+```{r}
+url_base = "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber="
+vec_urls = str_c(url_base, 1:5)
+
+output = vector("list", length = 5)
+
+for (i in 1:5) {
+  output[[i]] = read_page_reviews(vec_urls[[i]])
+}
+
+dynamite_reviews = bind_rows(output)
+
+dynamite_reviews = map_df(vec_urls, read_page_reviews)
+
+output = (map(vec_urls, read_page_reviews))
+```
+
+## List Columns
+```{r}
+weather = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2016-01-01",
+    date_max = "2016-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+Nest within station. 
+```{r}
+weather_nest = 
+  weather %>% 
+  nest(data = date:tmin)
+
+weather_nest %>% pull(name)
+weather_nest %>%  pull(data)
+
+##Looking at first list entry
+weather_nest$data[[1]]
+```
+
+Unnesting
+```{r}
+unnest(weather_nest, cols = data)
+
+```
+
+Operations on List Columns
+```{r}
+
+#making sure it works on a singular DF
+weather_lm(weather_nest$data[[1]])
+
+#weather_data lis a list, can use list_lm
+weather_lm(weather_nest$data[[1]])
+weather_lm(weather_nest$data[[2]])
+weather_lm(weather_nest$data[[3]])
+```
+
+...try a loop
+```{r}
+## double check after class
+output = vector("list")
+map(weather_nest$data, weather_lm)
+
+
+weather_lm = function(df) {
+  lm(tmax ~ tmin, data = df)
+}
+```
+adding column
+```{r}
+weather_nest %>% 
+  mutate(lin_models = map(data, weather_lm))
+```
+
+Revisitng past examples
+```{r}
+dynamite_reviews = 
+  tibble(page = 1:5,
+         urls = str_c(url_base, page)) %>% 
+  mutate(reviews = map(urls, read_page_reviews)) %>%
+  unnest() %>% 
+  select(urls)
+```
+
